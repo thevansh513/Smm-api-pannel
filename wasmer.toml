@@ -1,0 +1,7 @@
+[package]
+name = "smm-api-panel"          # ✅ Project name
+version = "1.0.0"
+description = "SMM API Panel PHP script for Wasmer"
+
+[build]
+entry = "index.php"             # ✅ Entry point for Wasmer
