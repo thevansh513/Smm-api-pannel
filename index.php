@@ -1,119 +1,339 @@
 <?php
-// smm_order_index.php for Wasmer
+session_start();
 
-// Enable debug for Wasmer
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// ===== CONFIG =====
+$packages = [
+    "0639"=>["name"=>"1000 Views","price"=>5,"paymentlink"=>"https://rzp.io/rzp/AlJPYN3"],
+    "0000"=>["name"=>"10000 Views","price"=>25,"paymentlink"=>"https://rzp.io/rzp/qikDbHel"]
+];
 
-// Configuration
-$API_URL = 'https://biggestsmmpanel.com/api/v2';
-$API_KEY = '32b3d02ce682fac87c1cd2fc5455e48b';
-$DEFAULT_SERVICE = 4676;
-$LOG_DIR = __DIR__ . '/orders_logs';
-$LOG_FILE = $LOG_DIR . '/orders.json';
+// URL PARAMETER CHECK
+$orderid = $_GET['orderid'] ?? null;
+$true_flag = isset($_GET['true']) || isset($_SESSION['payment_done']);
 
-// Ensure log directory exists
-if (!is_dir($LOG_DIR)) {
-    if (!mkdir($LOG_DIR, 0755, true)) {
-        die(json_encode(['success'=>false,'message'=>'Cannot create logs folder']));
+// SHOW FORM CONTROL
+$show_form = false;
+
+if($orderid && $true_flag && isset($packages[$orderid])){
+    $show_form = true;
+    $_SESSION['payment_done'] = true; // Payment done flag
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ViewBoost Pro - Premium Video Views</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<style>
+  :root {
+    --primary: #2563eb;
+    --success: #10b981;
+    --shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+    --light-bg: #f8fafc;
+    --dark-text: #1f2937;
+    --gray-text: #6b7280;
+    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --border-radius: 16px;
+  }
+
+  /* Reset */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, var(--light-bg) 0%, #e0e7ff 100%);
+    color: var(--dark-text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+  }
+
+  header {
+    background: var(--gradient-primary);
+    color: white;
+    width: 100%;
+    max-width: 520px;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    box-shadow: var(--shadow);
+    margin-bottom: 2rem;
+  }
+
+  .logo {
+    font-size: 2.5rem;
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .tagline {
+    font-size: 1.1rem;
+    opacity: 0.85;
+    margin-top: 0.25rem;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 520px;
+  }
+
+  .card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 2rem 2.5rem;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+  }
+
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+  }
+
+  .card-title {
+    color: var(--primary);
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 1.75rem;
+    text-align: center;
+  }
+
+  .service-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .service-option {
+    border: 2px solid #e5e7eb;
+    border-radius: var(--border-radius);
+    padding: 1.5rem 1rem;
+    cursor: pointer;
+    text-align: center;
+    position: relative;
+    transition: var(--transition);
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .service-option:hover {
+    border-color: var(--primary);
+    transform: translateY(-3px);
+  }
+
+  .service-option.selected {
+    border-color: var(--primary);
+    background: linear-gradient(135deg, var(--light-bg) 0%, #e0e7ff 100%);
+    box-shadow: 0 5px 15px rgba(37, 99, 235, 0.15);
+  }
+
+  .service-badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: var(--success);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+
+  .service-icon {
+    font-size: 2.5rem;
+    color: var(--primary);
+  }
+
+  .service-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--dark-text);
+  }
+
+  .service-price {
+    color: var(--success);
+    font-weight: 700;
+    font-size: 1.3rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1.15rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    text-decoration: none;
+    width: 100%;
+    background: var(--gradient-primary);
+    color: white;
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+  }
+
+  .btn:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+  }
+
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  label.form-label {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--dark-text);
+  }
+
+  input.form-control {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 2px solid #d1d5db;
+    border-radius: var(--border-radius);
+    transition: border-color 0.3s ease;
+  }
+
+  input.form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 5px var(--primary);
+  }
+
+  /* Fade-in animation */
+  .fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+    opacity: 0;
+  }
+
+  @keyframes fadeIn {
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
-}
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+  }
 
-// Read & sanitize input
-$video = isset($_GET['video']) ? trim($_GET['video']) : null;
-$serviceid = isset($_GET['serviceid']) && is_numeric($_GET['serviceid']) ? (int)$_GET['serviceid'] : $DEFAULT_SERVICE;
-$quantity = isset($_GET['quantity']) && is_numeric($_GET['quantity']) ? (int)$_GET['quantity'] : 0;
+  /* Responsive */
+  @media (max-width: 600px) {
+    .card {
+      padding: 1.5rem 1.5rem;
+    }
 
-// Validate input
-$errors = [];
-if (empty($video)) $errors[] = 'Missing parameter: video';
-if ($quantity <= 0) $errors[] = 'Quantity must be > 0';
+    .logo {
+      font-size: 2rem;
+    }
 
-// Create local order record
-$local_order = [
-    'local_order_id' => uniqid('local_'),
-    'video' => $video,
-    'serviceid' => $serviceid,
-    'quantity' => $quantity,
-    'received_at' => date('c'),
-    'status' => empty($errors) ? 'processing' : 'error',
-    'errors' => $errors
-];
+    .service-options {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+<body>
+<header class="fade-in" style="animation-delay: 0.1s;">
+  <div class="logo" aria-label="ViewBoost Pro Logo">
+    <i class="fas fa-eye" aria-hidden="true"></i> ViewBoost Pro
+  </div>
+  <div class="tagline">Get Instant Video Views - High Quality Guaranteed</div>
+</header>
 
-// Append to local log
-$existing = [];
-if (file_exists($LOG_FILE)) {
-    $json = file_get_contents($LOG_FILE);
-    if ($json) $existing = json_decode($json, true) ?: [];
-}
-$existing[] = $local_order;
-file_put_contents($LOG_FILE, json_encode($existing, JSON_PRETTY_PRINT));
+<div class="container">
+<?php if(!$show_form): ?>
+  <section class="card fade-in" id="packageCard" style="animation-delay: 0.2s;" aria-label="Select your package">
+    <h2 class="card-title">Select Your Package</h2>
+    <div class="service-options" role="list">
+      <?php foreach($packages as $id=>$pkg): ?>
+      <div class="service-option" role="listitem" tabindex="0" aria-pressed="false" data-orderid="<?= htmlspecialchars($id) ?>" data-paymentlink="<?= htmlspecialchars($pkg['paymentlink']) ?>">
+        <span class="service-badge"><?= $id=="0639"?"POPULAR":"PREMIUM" ?></span>
+        <div class="service-icon" aria-hidden="true"><?= $id=="0639"?"<i class='fas fa-fire'></i>":"<i class='fas fa-crown'></i>" ?></div>
+        <div class="service-name"><?= htmlspecialchars($pkg['name']) ?></div>
+        <div class="service-price">₹<?= htmlspecialchars($pkg['price']) ?></div>
+      </div>
+      <?php endforeach; ?>
+    </div>
+    <button class="btn" id="payButton" disabled aria-disabled="true" aria-label="Proceed to payment">Proceed to Payment</button>
+  </section>
+<?php else: ?>
+  <section class="card fade-in" style="animation-delay: 0.2s;" aria-label="Payment verified form">
+    <h2 class="card-title">Payment Verified! Enter Video Link</h2>
+    <form action="order.php" method="POST" novalidate>
+      <input type="hidden" name="orderid" value="<?= htmlspecialchars($orderid) ?>">
+      <div class="form-group">
+        <label for="video_link" class="form-label">Video Link</label>
+        <input type="url" id="video_link" name="video_link" class="form-control" required placeholder="https://youtube.com/..." aria-required="true" />
+      </div>
+      <button class="btn" type="submit" aria-label="Submit order">Submit Order</button>
+    </form>
+  </section>
+<?php endif; ?>
+</div>
 
-// Return error if validation failed
-header('Content-Type: application/json');
-if (!empty($errors)) {
-    http_response_code(400);
-    echo json_encode([
-        'success' => false,
-        'message' => 'Invalid parameters',
-        'errors' => $errors,
-        'local_order' => $local_order
-    ], JSON_PRETTY_PRINT);
-    exit;
-}
+<script>
+  let selectedPackage = null;
+  const options = document.querySelectorAll('.service-option');
+  const payButton = document.getElementById('payButton');
 
-// Build API request
-$query_params = http_build_query([
-    'key' => $API_KEY,
-    'action' => 'add',
-    'service' => $serviceid,
-    'link' => $video,
-    'quantity' => $quantity
-]);
-$call_url = rtrim($API_URL, '/') . '/?' . $query_params;
+  options.forEach(el => {
+    el.addEventListener('click', () => {
+      options.forEach(e => {
+        e.classList.remove('selected');
+        e.setAttribute('aria-pressed', 'false');
+      });
+      el.classList.add('selected');
+      el.setAttribute('aria-pressed', 'true');
+      selectedPackage = el.getAttribute('data-orderid');
+      payButton.disabled = false;
+      payButton.setAttribute('aria-disabled', 'false');
+    });
 
-// Make API call
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $call_url);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // avoid SSL issues in Wasmer
-$api_response = curl_exec($ch);
-$curl_err = curl_error($ch);
-$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
+    // Keyboard accessibility: allow selection with Enter or Space
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        el.click();
+      }
+    });
+  });
 
-// Prepare response
-$response_payload = [
-    'success' => false,
-    'message' => $curl_err ? 'cURL error: ' . $curl_err : 'No response from API',
-    'local_order' => $local_order,
-    'api_call' => $call_url,
-    'api_http_code' => $http_code,
-    'api_raw_response' => $api_response,
-    'api_decoded' => $api_response ? json_decode($api_response, true) : null
-];
-
-// Check API response for order ID
-$decoded = $response_payload['api_decoded'];
-if (is_array($decoded) && (isset($decoded['order']) || isset($decoded['order_id']) || isset($decoded['id']))) {
-    $order_from_api = $decoded['order'] ?? ($decoded['order_id'] ?? $decoded['id']);
-    $response_payload['success'] = true;
-    $response_payload['message'] = 'Order placed successfully';
-    $response_payload['api_order_id'] = $order_from_api;
-
-    // Update local log
-    $local_order['api_order_id'] = $order_from_api;
-    $local_order['status'] = 'placed';
-    $local_order['api_response'] = $decoded;
-    $existing[count($existing)-1] = $local_order;
-    file_put_contents($LOG_FILE, json_encode($existing, JSON_PRETTY_PRINT));
-} elseif (!$curl_err) {
-    $response_payload['success'] = true;
-    $response_payload['message'] = 'API returned response (inspect api_raw_response/api_decoded).';
-}
-
-// Return JSON response
-echo json_encode($response_payload, JSON_PRETTY_PRINT);
-exit;
+  payButton?.addEventListener('click', () => {
+    if (!selectedPackage) return;
+    const selectedOption = document.querySelector('.service-option.selected');
+    const payLink = selectedOption.getAttribute('data-paymentlink');
+    const redirectUrl = encodeURIComponent(`https://${window.location.host}/index.php?orderid=${selectedPackage}&true`);
+    window.location.href = `${payLink}?redirect=${redirectUrl}`;
+  });
+</script>
+</body>
+</html>
