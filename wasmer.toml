@@ -1,7 +1,12 @@
 [package]
-name = "smm-api-panel"          # ✅ Project name
-version = "1.0.0"
-description = "SMM API Panel PHP script for Wasmer"
+name = "Smm-api-pannel"
+version = "0.1.0"
 
-[build]
-entry = "index.php"             # ✅ Entry point for Wasmer
+[dependencies]
+php = ">=8.2.0"
+
+[fs]
+/ = "."
+
+[script]
+start = "php -S 0.0.0.0:${PORT:-80my-php-appmy-80m0mymy-y-pp--apppp
